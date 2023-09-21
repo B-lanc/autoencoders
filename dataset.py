@@ -6,11 +6,11 @@ import numpy as np
 import os
 
 
-class dataset(Dataset):
+class FlowerDataset(Dataset):
     """stolen from outlier"""
 
-    def __init__(self, path, resolution=256):
-        self.data = [os.path.join(path, file) for file in os.listdir(path)]
+    def __init__(self, paths_list, resolution=256):
+        self.data = paths_list
         self._length = len(self.data)
 
         self.transform = A.Compose(
@@ -32,3 +32,13 @@ class dataset(Dataset):
         im = self.transform(image=im)["image"]
         im = (im / 127.5 - 1.0).astype(np.float32).transpose(2, 0, 1)
         return im
+
+
+def make_train_val(path, resolution, train_cut=0.75):
+    paths = [os.path.join(path, file) for file in os.listdir(path)]
+    length = len(paths)
+    split = int(length * train_cut)
+
+    return FlowerDataset(paths[:split], resolution), FlowerDataset(
+        paths[split:], resolution
+    )

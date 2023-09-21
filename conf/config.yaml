@@ -2,7 +2,7 @@ general:
   training_tag : SimpleAE
   dataset_dir : /dataset
   checkpoint_dir : /saves
-  batch_size : 8
+  batch_size : 6
 
 model:
   img_channel : 3
@@ -11,7 +11,7 @@ model:
   z_channel : 4
   lr : 0.0003
   resolution : 256
-  depth : 1
+  depth : 3
   attention_res : [64]
   dropout : 0.2
   kl_const : 0.1

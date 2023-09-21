@@ -1,6 +1,6 @@
-from typing import Sequence, Union
+from typing import Any, Optional, Sequence, Union
 from lightning.pytorch.callbacks.callback import Callback
-from lightning.pytorch.utilities.types import OptimizerLRScheduler
+from lightning.pytorch.utilities.types import STEP_OUTPUT, OptimizerLRScheduler
 import torch
 import torch.nn as nn
 import lightning as L
@@ -60,6 +60,12 @@ class SimpleAutoencoder(L.LightningModule):
             logger=True,
         )
         return kl_loss + recon_loss
+
+    def validation_step(self, batch, batch_idx):
+        preds, _ = self(batch)
+        loss = torch.nn.functional.mse_loss(preds, batch)
+        self.log("val_loss", loss)
+        return loss
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)

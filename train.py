@@ -1,9 +1,10 @@
 import lightning as L
+from lightning.pytorch.callbacks import ModelCheckpoint
 import torch
 from torch.utils.data import DataLoader
 
 from model.AutoEncoder import SimpleAutoencoder
-from dataset import dataset
+from dataset import make_train_val
 
 import os
 import hydra
@@ -21,15 +22,28 @@ def main(cfg):
     MODEL = SimpleAutoencoder
 
     model = MODEL(settings=cfg.model)
-    ds = dataset(cfg.general.dataset_dir, cfg.model.resolution)
-    dataloader = DataLoader(
-        ds, batch_size=cfg.general.batch_size, shuffle=True, num_workers=6
+    train_ds, val_ds = make_train_val(cfg.general.dataset_dir, cfg.model.resolution)
+    train_dataloader = DataLoader(
+        train_ds, batch_size=cfg.general.batch_size, shuffle=True, num_workers=6
+    )
+    val_dataloader = DataLoader(
+        val_ds, batch_size=cfg.general.batch_size, num_workers=6
     )
 
-    trainer = L.Trainer(
-        accelerator="gpu", max_epochs=500, min_epochs=50, default_root_dir=save_dir
+    checkpoint_callback = ModelCheckpoint(
+        save_top_k=3,
+        monitor="val_loss",
+        mode="min",
+        filename="checkpoint{epoch:02d}",
     )
-    trainer.fit(model, dataloader)
+    trainer = L.Trainer(
+        accelerator="gpu",
+        max_epochs=100,
+        min_epochs=10,
+        callbacks=[checkpoint_callback],
+        default_root_dir=save_dir,
+    )
+    trainer.fit(model, train_dataloader, val_dataloader)
 
 
 if __name__ == "__main__":
