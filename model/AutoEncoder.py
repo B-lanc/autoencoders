@@ -9,10 +9,30 @@ from .modules.Codec import Encoder, Decoder
 
 
 class SimpleAutoencoder(L.LightningModule):
-    def __init__(self):
+    def __init__(self, settings):
         super(SimpleAutoencoder, self).__init__()
-        self.encoder = Encoder()
-        self.decoder = Decoder()
+        self.encoder = Encoder(
+            settings.img_channel,
+            settings.base_channel,
+            settings.ch_mult,
+            settings.z_channel,
+            settings.resolution,
+            settings.depth,
+            settings.attention_res,
+            settings.dropout,
+        )
+        self.decoder = Decoder(
+            settings.img_channel,
+            settings.base_channel,
+            settings.ch_mult,
+            settings.z_channel,
+            settings.resolution,
+            settings.depth,
+            settings.attention_res,
+            settings.dropout,
+        )
+        self.kl_const = settings.kl_const
+        self.lr = settings.lr
 
     def forward(self, x):
         z = self.encoder(x)
@@ -25,7 +45,7 @@ class SimpleAutoencoder(L.LightningModule):
         mu = latents.mean()
         sigma = latents.std()
         kl_loss = 1 + (sigma ** 2).log() - sigma ** 2 - mu ** 2
-        kl_loss = -kl_loss
+        kl_loss = -kl_loss * self.kl_const
         recon_loss = torch.nn.functional.mse_loss(reconstructed, batch)
 
         self.log(
@@ -42,4 +62,4 @@ class SimpleAutoencoder(L.LightningModule):
         return kl_loss + recon_loss
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=3e-4)
+        return torch.optim.Adam(self.parameters(), lr=self.lr)

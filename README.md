@@ -1,6 +1,7 @@
 # autoencoders
 Comparison between regularized autoencoder vs variational autoencoder vs VQGAN in terms of reconstruction loss (not for generation)
 Uses 102flowers dataset
+This means the latent space will preferrably be something not much smaller than the input dimensions
 
 
 # Building the docker image

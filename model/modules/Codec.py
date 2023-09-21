@@ -13,9 +13,9 @@ class Encoder(nn.Module):
         in_channels=3,
         base_channel=128,
         ch_mult=[1, 1, 2, 2, 4],
-        z_channels=32,
+        z_channel=32,
         resolution=256,
-        depth=1,
+        depth=2,
         attention_res=[16],
         dropout=0.2,
     ):
@@ -50,7 +50,7 @@ class Encoder(nn.Module):
             ResNetBlock(block_in, block_in, dropout),
         )
         self.norm = norm(block_in)
-        self.conv_out = nn.Conv2d(block_in, z_channels, 3, 1, 1)
+        self.conv_out = nn.Conv2d(block_in, z_channel, 3, 1, 1)
 
     def forward(self, x):
         x = self.conv_in(x)
@@ -67,9 +67,9 @@ class Decoder(nn.Module):
         out_channels=3,
         base_channel=128,
         ch_mult=[1, 1, 2, 2, 4],
-        z_channels=32,
+        z_channel=32,
         resolution=256,
-        depth=1,
+        depth=2,
         attention_res=[16],
         dropout=0.2,
     ):
@@ -79,7 +79,7 @@ class Decoder(nn.Module):
         channels = [base_channel * 2 ** i for i in reversed(ch_mult)]
         res = resolution // 2 * (level - 1)
 
-        self.conv_in = nn.Conv2d(z_channels, channels[0], 3, 1, 1)
+        self.conv_in = nn.Conv2d(z_channel, channels[0], 3, 1, 1)
         self.mid = nn.Sequential(
             ResNetBlock(channels[0], channels[0], dropout),
             Attention(channels[0]),
