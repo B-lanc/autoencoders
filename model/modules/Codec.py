@@ -97,9 +97,9 @@ class Decoder(nn.Module):
                 block_in = block_out
                 if res in attention_res:
                     block.append(Attention(block_in))
-                if i != level - 1:
-                    block.append(Upsample(block_in))
-                    res = res * 2
+            if i != level - 1:
+                block.append(Upsample(block_in))
+                res = res * 2
 
             block = nn.Sequential(*block)
             self.up.append(block)
