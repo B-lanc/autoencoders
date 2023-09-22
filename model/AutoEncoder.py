@@ -11,6 +11,7 @@ from .modules.Codec import Encoder, Decoder
 class SimpleAutoencoder(L.LightningModule):
     def __init__(self, settings):
         super(SimpleAutoencoder, self).__init__()
+        self.save_hyperparameters()
         self.encoder = Encoder(
             settings.img_channel,
             settings.base_channel,
@@ -39,8 +40,7 @@ class SimpleAutoencoder(L.LightningModule):
         return self.decoder(z), z
 
     def training_step(self, batch, batch_idx):
-        latents = self.encoder(batch)
-        reconstructed = self.decoder(latents)
+        reconstructed, latents = self(batch)
 
         mu = latents.mean()
         sigma = latents.std()
@@ -65,6 +65,7 @@ class SimpleAutoencoder(L.LightningModule):
         preds, _ = self(batch)
         loss = torch.nn.functional.mse_loss(preds, batch)
         self.log("val_loss", loss)
+        self.log("global_step", self.global_step)
         return loss
 
     def configure_optimizers(self):

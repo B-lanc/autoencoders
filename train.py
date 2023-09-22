@@ -30,17 +30,23 @@ def main(cfg):
         val_ds, batch_size=cfg.general.batch_size, num_workers=6
     )
 
-    checkpoint_callback = ModelCheckpoint(
+    checkpoint_callback_best = ModelCheckpoint(
         save_top_k=3,
         monitor="val_loss",
         mode="min",
-        filename="checkpoint{epoch:02d}",
+        filename="checkpoint_best_{epoch:02d}",
+    )
+    checkpoint_callback_last = ModelCheckpoint(
+        save_top_k=3,
+        monitor="global_step",
+        mode="max",
+        filename="checkpoint_last_{epoch:02d}",
     )
     trainer = L.Trainer(
         accelerator="gpu",
         max_epochs=100,
         min_epochs=10,
-        callbacks=[checkpoint_callback],
+        callbacks=[checkpoint_callback_best, checkpoint_callback_last],
         default_root_dir=save_dir,
     )
     trainer.fit(model, train_dataloader, val_dataloader)
